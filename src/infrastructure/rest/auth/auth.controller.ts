@@ -1,9 +1,9 @@
 import { Body, Get, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 
-import { RegisterUserUseCase } from '@src/application/use-cases/register-user.use-case';
-import { LoginUseCase } from '@src/application/use-cases/login.use-case';
-import { GetMeUseCase } from '@src/application/use-cases/get-me.use-case';
+import { RegisterUserUseCase } from '@src/application/use-cases/auth/register-user.use-case';
+import { LoginUseCase } from '@src/application/use-cases/auth/login.use-case';
+import { GetMeUseCase } from '@src/application/use-cases/auth/get-me.use-case';
 
 import { RestController } from '@src/infrastructure/rest/shared/rest.decorator';
 import { LoginRequestDto, LoginResponseDto, RegisterRequestDto } from './dto/auth.dto';

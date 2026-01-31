@@ -5,6 +5,7 @@ import { AuthModule } from '@src/infrastructure/rest/auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { ExceptionFilter } from '@src/infrastructure/rest/exception-filter.filter';
 import { LoggingModule } from '@src/config/logging.module';
+import { ConversationsModule } from '@src/infrastructure/rest/conversations/conversations.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { LoggingModule } from '@src/config/logging.module';
     TerminusModule,
     PostgresModule.forRoot(),
     AuthModule,
+  ConversationsModule,
   ],
   controllers: [],
   providers: [ExceptionFilter],

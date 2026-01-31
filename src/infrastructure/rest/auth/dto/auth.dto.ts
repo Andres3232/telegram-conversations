@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsString, MinLength } from 'class-validator';
 
-import { RegisterUserInput } from '@src/application/use-cases/register-user.use-case';
-import { LoginInput } from '@src/application/use-cases/login.use-case';
+import { RegisterUserInput } from '@src/application/use-cases/auth/register-user.use-case';
+import { LoginInput } from '@src/application/use-cases/auth/login.use-case';
 
 export class RegisterRequestDto {
   @ApiProperty({ example: 'admin@example.com' })

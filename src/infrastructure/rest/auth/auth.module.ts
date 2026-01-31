@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { RegisterUserUseCase } from '@src/application/use-cases/register-user.use-case';
-import { LoginUseCase } from '@src/application/use-cases/login.use-case';
-import { GetMeUseCase } from '@src/application/use-cases/get-me.use-case';
+import { RegisterUserUseCase } from '@src/application/use-cases/auth/register-user.use-case';
+import { LoginUseCase } from '@src/application/use-cases/auth/login.use-case';
+import { GetMeUseCase } from '@src/application/use-cases/auth/get-me.use-case';
 
 import { PASSWORD_HASHER } from '@src/domain/ports/password-hasher';
 import { JWT_SERVICE } from '@src/domain/ports/jwt.service';

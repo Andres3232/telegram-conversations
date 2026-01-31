@@ -5,8 +5,10 @@ import * as Joi from 'joi';
 
 import { ConfigKeys } from '@src/config/config-keys';
 import { UserPersistence } from '@src/infrastructure/adapters/repositories/user/user.persistence';
+import { ConversationPersistence } from '@src/infrastructure/adapters/repositories/conversation/conversation.persistence';
+import { MessagePersistence } from '@src/infrastructure/adapters/repositories/message/message.persistence';
 
-export const ENTITIES = [UserPersistence];
+export const ENTITIES = [UserPersistence, ConversationPersistence, MessagePersistence];
 
 @Module({})
 export class PostgresModule {

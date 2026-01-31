@@ -19,6 +19,7 @@ export function swaggerConfig(app: INestApplication) {
     .setVersion(packageJson.version)
   .addBearerAuth()
   .addTag('Auth')
+  .addTag('Conversations')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
