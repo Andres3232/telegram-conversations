@@ -1,7 +1,7 @@
 import * as crypto from 'crypto';
 
 import { BaseEntity } from '@src/domain/model/base.entity';
-import { PasswordTooWeakError } from '@src/domain/errors/auth.errors';
+import { MissingPasswordHashError } from '@src/domain/errors/auth.errors';
 import { Email } from '@src/domain/value-objects/email.vo';
 
 export interface UserProps {
@@ -16,7 +16,13 @@ export class User extends BaseEntity {
   readonly email: Email;
   readonly passwordHash: string;
 
-  private constructor({ id, email, passwordHash, createdAt, updatedAt }: UserProps) {
+  private constructor({
+    id,
+    email,
+    passwordHash,
+    createdAt,
+    updatedAt,
+  }: UserProps) {
     super(id, createdAt, updatedAt);
     this.email = email;
     this.passwordHash = passwordHash;
@@ -24,8 +30,7 @@ export class User extends BaseEntity {
 
   static createNew(params: { email: Email; passwordHash: string }): User {
     if (!params.passwordHash) {
-      // El hash se calcula fuera (puerto). Si falta, es un bug.
-      throw new PasswordTooWeakError();
+      throw new MissingPasswordHashError();
     }
     return new User({
       id: crypto.randomUUID(),

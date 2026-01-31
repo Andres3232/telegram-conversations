@@ -23,3 +23,12 @@ export class InvalidCredentialsError extends DomainError {
     super('Invalid credentials.', 'INVALID_CREDENTIALS');
   }
 }
+
+export class MissingPasswordHashError extends DomainError {
+  constructor() {
+    super(
+      'Password hash is required to create a User. This is an application/infrastructure bug.',
+      'MISSING_PASSWORD_HASH',
+    );
+  }
+}
