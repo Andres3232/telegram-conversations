@@ -15,6 +15,7 @@ import { PinoLoggerService } from '@src/infrastructure/adapters/logger/pino-logg
 import { LoggingModule } from '@src/config/logging.module';
 import { TelegramHttpClient } from '@src/infrastructure/adapters/telegram/telegram-http.client';
 import { TelegramPollingService } from './telegram-polling.service';
+import { KafkaModule } from '@src/infrastructure/kafka/kafka.module';
 import { TelegramSyncStatePersistence } from '@src/infrastructure/adapters/repositories/telegram-sync-state/telegram-sync-state.persistence';
 import { TypeOrmTelegramSyncStateRepository } from '@src/infrastructure/adapters/repositories/telegram-sync-state/typeorm-telegram-sync-state.repository';
 
@@ -28,6 +29,7 @@ import { TypeOrmMessageRepository } from '@src/infrastructure/adapters/repositor
     ConfigModule,
     LoggingModule.forRoot(),
     ScheduleModule.forRoot(),
+    KafkaModule,
     TypeOrmModule.forFeature([
       ConversationPersistence,
       MessagePersistence,
@@ -55,7 +57,6 @@ import { TypeOrmMessageRepository } from '@src/infrastructure/adapters/repositor
       useExisting: TypeOrmConversationRepository,
     },
     { provide: MESSAGE_REPOSITORY, useExisting: TypeOrmMessageRepository },
-
   ],
   exports: [],
 })

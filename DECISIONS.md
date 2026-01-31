@@ -134,3 +134,39 @@ Este documento registra trade-offs (decisiones con pros/contras) tomados durante
 **Consecuencias / costo:**
 - La tabla existe y se persiste, pero no hay invariantes ricas en dominio (por ejemplo, no hay `Entity` con comportamiento).
 - En escenarios más complejos (multi-bot, multi-instancia con locking/leases, auditoría, replay), probablemente convenga promover esto a un modelo más explícito (y agregar concurrencia/locking/validaciones como “el cursor nunca retrocede”).
+
+---
+
+## 8) Publicar `MessageReceivedEvent` por Kafka al persistir mensajes entrantes
+
+**Decisión:** cuando `SyncTelegramUpdatesUseCase` detecta e inserta un mensaje entrante (direction = `IN`), publica un evento `MessageReceivedEvent` usando el puerto `MessageProducer` y una implementación concreta con Kafka (`KafkaMessageProducer`).
+
+**Por qué (motivo de diseño):**
+- El caso de uso de sincronización tiene una responsabilidad clara: **consumir updates y persistir el estado** (conversaciones/mensajes + cursor/offset). La lógica “qué hacemos después de recibir un mensaje” (auto-reply, moderación, métricas, notificaciones, etc.) es una preocupación distinta.
+- Kafka nos da un mecanismo estándar para **desacoplar** productores y consumidores:
+	- el poller/use-case puede seguir funcionando aunque el consumidor esté caído
+	- podemos agregar nuevos consumidores sin tocar el core (por ejemplo: auto-reply, analytics, auditoría)
+	- habilita escalado independiente (polling/persistencia vs procesamiento posterior)
+	- facilita “event-driven” como bonus del challenge sin meter side-effects en el mismo flujo
+
+**Por qué NO dejar “todo en el mismo caso de uso”:**
+- Mezcla responsabilidades: “persistir” + “decidir/ejecutar reacciones”. Eso ensucia el caso de uso y lo vuelve más difícil de mantener.
+- Acopla el core a side-effects (responder a Telegram, llamar otros servicios), complicando tests y aumentando la probabilidad de fallas parciales.
+- Dificulta extender: cada nueva reacción implicaría editar el mismo caso de uso, aumentando el riesgo de regresiones.
+
+**Consecuencias / costo:**
+- Requiere infraestructura adicional (Kafka broker en local/producción) y configuración (`KAFKA_BROKERS`, `KAFKA_CONSUMER_GROUP_ID`).
+- Aparece el problema clásico de “publish vs commit”: si insertamos el mensaje pero falla la publicación, el evento no se emite. (Para producción, esto se suele resolver con Outbox/CDC; para el challenge aceptamos el trade-off por simplicidad.)
+- Los consumidores deben ser idempotentes o tolerantes a reintentos/delivery-at-least-once.
+
+**Implementación actual:**
+- Evento: `src/domain/events/message-received.event.ts` (topic: `telegram`, eventName: `message.received`).
+- Producer (infra): `src/infrastructure/kafka/kafka-message.producer.ts`.
+- Wiring: `src/infrastructure/kafka/kafka.module.ts` exporta el token `MESSAGE_PRODUCER`.
+- Publicación: `src/application/use-cases/telegram/sync-telegram-updates.use-case.ts` publica el evento sólo cuando el insert es nuevo (`inserted` existe).
+
+**Trade-off adicional (cursor/offset vs publish):**
+- En `SyncTelegramUpdatesUseCase` actualizamos el cursor (`telegram_sync_state.lastUpdateId`) en un `finally` por cada update, incluso si falla el `producer.send(...)`.
+- Esto prioriza **no bloquear el polling** y evitar quedar “pegados” reintentando el mismo update indefinidamente.
+- Costo: ante fallo de Kafka (o del publish), podemos **perder el evento** de ese mensaje porque el cursor avanza y el update no se re-procesa.
+- Mitigación actual: el mensaje **ya queda persistido en DB**, así que se puede re-empaquetar/republicar luego (manual o con un job). La solución “pro” sería implementar Outbox (DB) + publisher (reintentos) para garantizar entrega.

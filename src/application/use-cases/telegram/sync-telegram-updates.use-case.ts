@@ -4,14 +4,25 @@ import {
   CONVERSATION_REPOSITORY,
   ConversationRepository,
 } from '@src/domain/ports/conversation.repository';
-import { MESSAGE_REPOSITORY, MessageRepository } from '@src/domain/ports/message.repository';
-import { TELEGRAM_CLIENT, TelegramClient } from '@src/domain/ports/telegram.client';
+import {
+  MESSAGE_REPOSITORY,
+  MessageRepository,
+} from '@src/domain/ports/message.repository';
+import {
+  TELEGRAM_CLIENT,
+  TelegramClient,
+} from '@src/domain/ports/telegram.client';
 import {
   TELEGRAM_SYNC_STATE_REPOSITORY,
   TelegramSyncStateRepository,
 } from '@src/domain/ports/telegram-sync-state.repository';
 import { Conversation } from '@src/domain/model/conversation.entity';
 import { TelegramChatId } from '@src/domain/value-objects/telegram-chat-id.vo';
+import {
+  MESSAGE_PRODUCER,
+  MessageProducer,
+} from '@src/domain/ports/message.producer';
+import { MessageReceivedEvent } from '@src/domain/events/message-received.event';
 
 export interface SyncTelegramUpdatesInput {
   limit?: number;
@@ -35,6 +46,8 @@ export class SyncTelegramUpdatesUseCase {
     private readonly conversations: ConversationRepository,
     @Inject(MESSAGE_REPOSITORY)
     private readonly messages: MessageRepository,
+    @Inject(MESSAGE_PRODUCER)
+    private readonly producer: MessageProducer,
   ) {}
 
   async execute(
@@ -78,6 +91,17 @@ export class SyncTelegramUpdatesUseCase {
 
         if (inserted) {
           processedMessages += 1;
+
+          await this.producer.send(
+            new MessageReceivedEvent({
+              messageId: inserted.id,
+              conversationId: conversation.id,
+              telegramChatId: telegramChatId.toString(),
+              telegramUpdateId: u.updateId,
+              text,
+              receivedAt: inserted.createdAt.toISOString(),
+            }),
+          );
         }
       } finally {
         await this.syncState.setLastUpdateId(lastUpdateIdAfter);

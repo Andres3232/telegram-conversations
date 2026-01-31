@@ -50,15 +50,18 @@ describe('SyncTelegramUpdatesUseCase', () => {
       saveFromTelegramUpdate: jest
         .fn()
         .mockResolvedValueOnce(undefined)
-        .mockResolvedValueOnce({ id: 'm2' }),
+  .mockResolvedValueOnce({ id: 'm2', createdAt: new Date('2020-01-01') }),
       listByConversationId: jest.fn(),
     };
+
+    const producer = { send: jest.fn().mockResolvedValue(undefined) };
 
     const uc = new SyncTelegramUpdatesUseCase(
       telegram as any,
       syncState as any,
       conversations as any,
       messages as any,
+      producer as any,
     );
 
     const out = await uc.execute({ limit: 50, timeoutSeconds: 0 });

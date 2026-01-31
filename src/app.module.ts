@@ -7,6 +7,7 @@ import { ExceptionFilter } from '@src/infrastructure/rest/exception-filter.filte
 import { LoggingModule } from '@src/config/logging.module';
 import { ConversationsModule } from '@src/infrastructure/rest/conversations/conversations.module';
 import { TelegramModule } from '@src/infrastructure/telegram-cron/telegram.module';
+import { KafkaModule } from '@src/infrastructure/kafka/kafka.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { TelegramModule } from '@src/infrastructure/telegram-cron/telegram.modul
     LoggingModule.forRoot(),
     TerminusModule,
     PostgresModule.forRoot(),
+    KafkaModule,
     AuthModule,
     ConversationsModule,
     TelegramModule,
