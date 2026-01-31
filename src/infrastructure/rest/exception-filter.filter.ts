@@ -1,20 +1,35 @@
-import { ArgumentsHost, Catch, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  ArgumentsHost,
+  Catch,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { DomainError } from '@src/domain/errors/domain.error';
+import { PinoLogger } from 'nestjs-pino';
 
 @Catch()
 export class ExceptionFilter {
+  constructor(private readonly logger: PinoLogger) {}
+
   catch(exception: any, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response: any = ctx.getResponse();
     const request: any = ctx.getRequest();
 
-    // Si no hay response (edge case), no podemos contestar.
     if (!response) return;
 
     const url = request?.url;
 
     // Dominios -> 400
     if (exception instanceof DomainError) {
+      this.logger.warn(
+        {
+          errorCode: exception.errorCode,
+          data: exception.data,
+          path: url,
+        },
+        exception.message,
+      );
       return response.status(HttpStatus.BAD_REQUEST).json({
         statusCode: HttpStatus.BAD_REQUEST,
         error: 'domain_error',
@@ -31,6 +46,11 @@ export class ExceptionFilter {
       const status = exception.getStatus();
       const body = exception.getResponse();
 
+      this.logger.warn(
+        { statusCode: status, path: url, response: body },
+        'HttpException',
+      );
+
       const payload =
         typeof body === 'string'
           ? { statusCode: status, message: body }
@@ -44,6 +64,10 @@ export class ExceptionFilter {
     }
 
     // Fallback -> 500
+    this.logger.error(
+      { path: url, err: exception },
+      exception?.message ?? 'Internal server error',
+    );
     return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
       error: 'internal_server_error',

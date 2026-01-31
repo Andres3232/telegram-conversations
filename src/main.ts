@@ -16,7 +16,7 @@ async function bootstrap() {
       transform: true,
     }),
   );
-  app.useGlobalFilters(new ExceptionFilter());
+  app.useGlobalFilters(app.get(ExceptionFilter));
   swaggerConfig(app);
   await app.listen(process.env.PORT ?? 3000);
 }
