@@ -10,8 +10,6 @@ import { CONVERSATION_REPOSITORY } from '@src/domain/ports/conversation.reposito
 import { MESSAGE_REPOSITORY } from '@src/domain/ports/message.repository';
 import { CONFIGURATION_SERVICE } from '@src/domain/ports/configuration.service';
 import { NestConfigurationService } from '@src/infrastructure/adapters/configuration/nest-configuration.service';
-import { LOGGER_SERVICE } from '@src/domain/ports/logger.service';
-import { PinoLoggerService } from '@src/infrastructure/adapters/logger/pino-logger.service';
 import { LoggingModule } from '@src/config/logging.module';
 import { TelegramHttpClient } from '@src/infrastructure/adapters/telegram/telegram-http.client';
 import { TelegramPollingService } from './telegram-polling.service';
@@ -27,7 +25,7 @@ import { TypeOrmMessageRepository } from '@src/infrastructure/adapters/repositor
 @Module({
   imports: [
     ConfigModule,
-    LoggingModule.forRoot(),
+  LoggingModule.forRoot(),
     ScheduleModule.forRoot(),
     KafkaModule,
     TypeOrmModule.forFeature([
@@ -47,7 +45,7 @@ import { TypeOrmMessageRepository } from '@src/infrastructure/adapters/repositor
     NestConfigurationService,
     { provide: TELEGRAM_CLIENT, useClass: TelegramHttpClient },
     { provide: CONFIGURATION_SERVICE, useExisting: NestConfigurationService },
-    { provide: LOGGER_SERVICE, useExisting: PinoLoggerService },
+  // Logger is provided by LoggingModule
     {
       provide: TELEGRAM_SYNC_STATE_REPOSITORY,
       useClass: TypeOrmTelegramSyncStateRepository,
@@ -58,6 +56,6 @@ import { TypeOrmMessageRepository } from '@src/infrastructure/adapters/repositor
     },
     { provide: MESSAGE_REPOSITORY, useExisting: TypeOrmMessageRepository },
   ],
-  exports: [],
+  exports: [TELEGRAM_CLIENT],
 })
 export class TelegramModule {}

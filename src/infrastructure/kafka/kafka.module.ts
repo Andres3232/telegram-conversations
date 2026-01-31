@@ -7,11 +7,13 @@ import {
 import { NestConfigurationService } from '@src/infrastructure/adapters/configuration/nest-configuration.service';
 import { KafkaMessageProducer } from '@src/infrastructure/kafka/kafka-message.producer';
 import { ConfigModule } from '@nestjs/config';
+import { KafkaClientFactory } from './kafka.client';
 
 @Module({
   imports: [ConfigModule],
   providers: [
     NestConfigurationService,
+  KafkaClientFactory,
     KafkaMessageProducer,
     {
       provide: CONFIGURATION_SERVICE,
@@ -22,6 +24,6 @@ import { ConfigModule } from '@nestjs/config';
       useExisting: KafkaMessageProducer,
     },
   ],
-  exports: [MESSAGE_PRODUCER],
+  exports: [MESSAGE_PRODUCER, CONFIGURATION_SERVICE, KafkaClientFactory],
 })
 export class KafkaModule {}

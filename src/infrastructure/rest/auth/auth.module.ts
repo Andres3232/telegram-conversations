@@ -16,7 +16,6 @@ import { NestConfigurationService } from '@src/infrastructure/adapters/configura
 import { UserPersistence } from '@src/infrastructure/adapters/repositories/user/user.persistence';
 import { TypeOrmUserRepository } from '@src/infrastructure/adapters/repositories/user/typeorm-user.repository';
 import { LOGGER_SERVICE } from '@src/domain/ports/logger.service';
-import { PinoLoggerService } from '@src/infrastructure/adapters/logger/pino-logger.service';
 import { LoggingModule } from '@src/config/logging.module';
 
 import { AuthController } from './auth.controller';
@@ -44,7 +43,7 @@ import { JwtAuthGuard } from './jwt-auth.guard';
     { provide: JWT_SERVICE, useExisting: JsonWebTokenService },
     { provide: CONFIGURATION_SERVICE, useExisting: NestConfigurationService },
 
-  { provide: LOGGER_SERVICE, useExisting: PinoLoggerService },
+  // Logger is provided by LoggingModule
   ],
   exports: [],
 })

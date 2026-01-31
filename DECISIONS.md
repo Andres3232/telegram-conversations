@@ -4,6 +4,9 @@ Este documento registra trade-offs (decisiones con pros/contras) tomados durante
 
 ---
 
+
+
+
 ## 1) Auth con JWT propio (puerto `JwtServicePort`) en vez de `@nestjs/jwt`
 
 **Decisión:** implementar `JwtServicePort` en dominio y una implementación concreta `JsonWebTokenService` (infra) usando `jsonwebtoken`.
@@ -66,7 +69,7 @@ Este documento registra trade-offs (decisiones con pros/contras) tomados durante
 
 ---
 
-## 6) Offset persistido + idempotencia “pro” por UNIQUE (`telegramUpdateId`)
+## 5) Offset persistido + idempotencia “pro” por UNIQUE (`telegramUpdateId`)
 
 **Decisión:** persistir el cursor (`lastUpdateId`) en DB y usar `telegramUpdateId` con constraint **UNIQUE** para que el consumo sea idempotente ante reintentos.
 
@@ -107,7 +110,7 @@ Este documento registra trade-offs (decisiones con pros/contras) tomados durante
 
 - Para el challenge seguimos priorizando simplicidad + idempotencia por UNIQUE; el diseño puede ajustarse según el SLA deseado ("no perder" vs "no repetir").
 
-## 5) Logging estructurado con Pino (`nestjs-pino`) en vez de logs simples
+## 6) Logging estructurado con Pino (`nestjs-pino`) en vez de logs simples
 
 **Decisión:** usar `nestjs-pino` + un adapter `PinoLoggerService` que implementa el puerto `LoggerService`.
 
@@ -170,3 +173,26 @@ Este documento registra trade-offs (decisiones con pros/contras) tomados durante
 - Esto prioriza **no bloquear el polling** y evitar quedar “pegados” reintentando el mismo update indefinidamente.
 - Costo: ante fallo de Kafka (o del publish), podemos **perder el evento** de ese mensaje porque el cursor avanza y el update no se re-procesa.
 - Mitigación actual: el mensaje **ya queda persistido en DB**, así que se puede re-empaquetar/republicar luego (manual o con un job). La solución “pro” sería implementar Outbox (DB) + publisher (reintentos) para garantizar entrega.
+
+**Mejora futura (idempotencia en el consumer):**
+- Sin idempotencia, Kafka puede re-entregar el mismo evento (rebalance, retry, restart) y el bot podría **responder dos veces**.
+- Una solución simple es implementar un registro técnico `processed_events` con una clave única (por ejemplo `telegramUpdateId` o un `eventId`) para que el handler sea idempotente.
+
+## 9) `TelegramConsumersModule` separado de `KafkaModule` (feature wiring vs infraestructura)
+
+**Decisión:** mantener `TelegramConsumersModule` como módulo propio (feature) que importa `KafkaModule` y `TelegramModule`, en vez de configurar el consumer dentro de `KafkaModule`.
+
+**Por qué:**
+- `KafkaModule` es infraestructura genérica: expone “cómo conectarse a Kafka” (por ejemplo `KafkaClientFactory`) y un producer (`KafkaMessageProducer`).
+- El consumer de Telegram es una “feature”: combina Kafka + handlers + casos de uso + Telegram client (`ReplyToMessageUseCase`). Si lo metemos en `KafkaModule`, Kafka quedaría acoplado al dominio/feature de Telegram.
+- Escalabilidad de diseño: mañana pueden existir otros consumidores (otros tópicos/eventos) y conviene tener módulos por feature (`PaymentsConsumersModule`, `NotificationsConsumersModule`, etc.) sin convertir `KafkaModule` en un “god module”.
+
+**Consecuencias / costo:**
+- Hay más archivos/módulos (más wiring explícito).
+- Algunas dependencias transversales como logging/config pueden necesitar importarse también en el feature-module (limitación de Nest DI si no son módulos globales).
+
+**Trade-off:**
+- **Pro (separado):** mejor boundary, menos acoplamiento, más fácil apagar/encender features (importando o no el módulo).
+- **Contra (separado):** más boilerplate.
+- **Pro (todo en KafkaModule):** menos boilerplate inicial.
+- **Contra (todo en KafkaModule):** riesgo de mezclar infraestructura con features y que el módulo de Kafka termine dependiendo de Telegram/casos de uso.

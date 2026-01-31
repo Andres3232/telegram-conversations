@@ -8,6 +8,7 @@ import { LoggingModule } from '@src/config/logging.module';
 import { ConversationsModule } from '@src/infrastructure/rest/conversations/conversations.module';
 import { TelegramModule } from '@src/infrastructure/telegram-cron/telegram.module';
 import { KafkaModule } from '@src/infrastructure/kafka/kafka.module';
+import { TelegramConsumersModule } from '@src/infrastructure/kafka/consumers/telegram-consumers.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { KafkaModule } from '@src/infrastructure/kafka/kafka.module';
     TerminusModule,
     PostgresModule.forRoot(),
     KafkaModule,
+    TelegramConsumersModule,
     AuthModule,
     ConversationsModule,
     TelegramModule,

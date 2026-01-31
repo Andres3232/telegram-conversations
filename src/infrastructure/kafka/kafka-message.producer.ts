@@ -1,46 +1,19 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Kafka, Producer } from 'kafkajs';
+import { Injectable } from '@nestjs/common';
+import { Producer } from 'kafkajs';
 
 import { DomainEvent } from '@src/domain/events/shared/domain.event';
 import { MessageProducer } from '@src/domain/ports/message.producer';
-import {
-  CONFIGURATION_SERVICE,
-  ConfigurationService,
-} from '@src/domain/ports/configuration.service';
-import { ConfigKeys } from '@src/config/config-keys';
+import { KafkaClientFactory } from './kafka.client';
 
 @Injectable()
 export class KafkaMessageProducer implements MessageProducer {
   private producer?: Producer;
 
-  constructor(
-    @Inject(CONFIGURATION_SERVICE)
-    private readonly config: ConfigurationService,
-  ) {}
-
-  private get kafka(): Kafka {
-    const brokersRaw = this.config.get(ConfigKeys.KAFKA_BROKERS) ?? '';
-    const brokers = brokersRaw
-      .split(',')
-      .map((b) => b.trim())
-      .filter(Boolean);
-
-    if (brokers.length === 0) {
-      throw new Error(
-        'KAFKA_BROKERS is empty. Please set KAFKA_BROKERS (e.g. localhost:9092).',
-      );
-    }
-
-    return new Kafka({
-      clientId:
-        this.config.get(ConfigKeys.SERVICE_NAME) ?? 'telegram-conversations',
-      brokers,
-    });
-  }
+  constructor(private readonly kafkaFactory: KafkaClientFactory) {}
 
   private async getProducer(): Promise<Producer> {
     if (!this.producer) {
-      this.producer = this.kafka.producer();
+  this.producer = this.kafkaFactory.createClient('producer').producer();
       await this.producer.connect();
     }
     return this.producer;
