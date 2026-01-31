@@ -22,6 +22,12 @@ export class MessagePersistence {
   @Column({ type: 'uuid' })
   conversationId: string;
 
+  // Used for idempotency when consuming Telegram updates.
+  // If the polling job re-processes an already handled update, the insert will fail due to UNIQUE constraint.
+  @Index({ unique: true })
+  @Column({ type: 'bigint', nullable: true, unique: true })
+  telegramUpdateId?: string | null;
+
   @ManyToOne(() => ConversationPersistence, (c) => c.messages, {
     onDelete: 'CASCADE',
   })
@@ -44,6 +50,9 @@ export class MessagePersistence {
     return Message.rehydrate({
       id: this.id,
       conversationId: this.conversationId,
+      telegramUpdateId: this.telegramUpdateId
+        ? Number(this.telegramUpdateId)
+        : undefined,
       direction: this.direction,
       content: MessageContent.create(this.content),
       createdAt: this.createdAt,
@@ -55,6 +64,10 @@ export class MessagePersistence {
     const p = new MessagePersistence();
     p.id = message.id;
     p.conversationId = message.conversationId;
+    p.telegramUpdateId =
+      message.telegramUpdateId !== undefined
+        ? String(message.telegramUpdateId)
+        : null;
     p.direction = message.direction;
     p.content = message.content.toString();
     p.createdAt = message.createdAt;

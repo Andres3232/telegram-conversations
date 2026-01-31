@@ -8,6 +8,7 @@ export type MessageDirection = 'IN' | 'OUT';
 export interface MessageProps {
   id: string;
   conversationId: string;
+  telegramUpdateId?: number;
   direction: MessageDirection;
   content: MessageContent;
   createdAt?: Date;
@@ -16,12 +17,14 @@ export interface MessageProps {
 
 export class Message extends BaseEntity {
   readonly conversationId: string;
+  readonly telegramUpdateId?: number;
   readonly direction: MessageDirection;
   readonly content: MessageContent;
 
   private constructor({
     id,
     conversationId,
+    telegramUpdateId,
     direction,
     content,
     createdAt,
@@ -29,6 +32,7 @@ export class Message extends BaseEntity {
   }: MessageProps) {
     super(id, createdAt, updatedAt);
     this.conversationId = conversationId;
+    this.telegramUpdateId = telegramUpdateId;
     this.direction = direction;
     this.content = content;
   }
@@ -37,10 +41,12 @@ export class Message extends BaseEntity {
     conversationId: string;
     direction: MessageDirection;
     content: MessageContent;
+    telegramUpdateId?: number;
   }): Message {
     return new Message({
       id: crypto.randomUUID(),
       conversationId: params.conversationId,
+      telegramUpdateId: params.telegramUpdateId,
       direction: params.direction,
       content: params.content,
     });

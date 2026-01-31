@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 
 import { Message } from '@src/domain/model/message.entity';
 import { MessageRepository } from '@src/domain/ports/message.repository';
+import { MessageContent } from '@src/domain/value-objects/message-content.vo';
 import { MessagePersistence } from './message.persistence';
 
 @Injectable()
@@ -16,6 +17,33 @@ export class TypeOrmMessageRepository implements MessageRepository {
   async save(message: Message): Promise<Message> {
     const saved = await this.repo.save(MessagePersistence.fromDomain(message));
     return saved.toDomain();
+  }
+
+  async saveFromTelegramUpdate(params: {
+    conversationId: string;
+    direction: 'IN' | 'OUT';
+    content: string;
+    telegramUpdateId: number;
+  }): Promise<Message | undefined> {
+    const message = Message.createNew({
+      conversationId: params.conversationId,
+      direction: params.direction,
+      content: MessageContent.create(params.content),
+      telegramUpdateId: params.telegramUpdateId,
+    });
+
+    try {
+      const saved = await this.repo.insert(MessagePersistence.fromDomain(message));
+      // insert() doesn't return entity, so fetch by id
+      const row = await this.repo.findOne({ where: { id: message.id } });
+      return row?.toDomain();
+    } catch (err: any) {
+      // Postgres unique violation (telegramUpdateId) => already processed
+      if (err?.code === '23505') {
+        return undefined;
+      }
+      throw err;
+    }
   }
 
   async listByConversationId(

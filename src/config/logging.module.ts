@@ -1,5 +1,7 @@
 import { DynamicModule, Module } from '@nestjs/common';
 import { LoggerModule } from 'nestjs-pino';
+import { LOGGER_SERVICE } from '@src/domain/ports/logger.service';
+import { PinoLoggerService } from '@src/infrastructure/adapters/logger/pino-logger.service';
 
 @Module({})
 export class LoggingModule {
@@ -35,7 +37,12 @@ export class LoggingModule {
           },
         }),
       ],
-      exports: [LoggerModule],
+
+      providers: [
+        PinoLoggerService,
+        { provide: LOGGER_SERVICE, useExisting: PinoLoggerService },
+      ],
+      exports: [LoggerModule, PinoLoggerService, LOGGER_SERVICE],
     };
   }
 }

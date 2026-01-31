@@ -6,6 +6,7 @@ import { ConfigModule } from '@nestjs/config';
 import { ExceptionFilter } from '@src/infrastructure/rest/exception-filter.filter';
 import { LoggingModule } from '@src/config/logging.module';
 import { ConversationsModule } from '@src/infrastructure/rest/conversations/conversations.module';
+import { TelegramModule } from '@src/infrastructure/telegram-cron/telegram.module';
 
 @Module({
   imports: [
@@ -16,7 +17,8 @@ import { ConversationsModule } from '@src/infrastructure/rest/conversations/conv
     TerminusModule,
     PostgresModule.forRoot(),
     AuthModule,
-  ConversationsModule,
+    ConversationsModule,
+    TelegramModule,
   ],
   controllers: [],
   providers: [ExceptionFilter],
