@@ -1,0 +1,35 @@
+services:
+  challenge-greelow:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    command: "npm run start:dev"
+    volumes:
+      - .:/app
+    env_file:
+      - .docker.env
+    depends_on:
+      challenge-greelow-postgresql:
+        condition: service_healthy
+
+  challenge-greelow-postgresql:
+    image: postgres:16-alpine
+    container_name: challenge-greelow-postgresql
+    environment:
+      POSTGRES_USER: greelow
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: greelow
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "greelow"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
