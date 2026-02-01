@@ -1,6 +1,7 @@
-import { Get, Param, Query, UseGuards } from '@nestjs/common';
+import { Body, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiCreatedResponse,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
@@ -8,11 +9,13 @@ import {
 } from '@nestjs/swagger';
 import { ListConversationsUseCase } from '@src/application/use-cases/conversations/list-conversations.use-case';
 import { ListMessagesUseCase } from '@src/application/use-cases/conversations/list-messages.use-case';
+import { SendMessageUseCase } from '@src/application/use-cases/conversations/send-message.use-case';
 import { JwtAuthGuard } from '@src/infrastructure/rest/auth/jwt-auth.guard';
 import { RestController } from '@src/infrastructure/rest/shared/rest.decorator';
 import { PaginationQueryDto } from './dto/pagination.dto';
 import { ListConversationsResponseDto } from './dto/conversations.dto';
 import { ListMessagesResponseDto } from './dto/messages.dto';
+import { SendMessageRequestDto, SendMessageResponseDto } from './dto/send-message.dto';
 
 @RestController('conversations')
 @ApiTags('Conversations')
@@ -22,6 +25,7 @@ export class ConversationsController {
   constructor(
     private readonly listConversations: ListConversationsUseCase,
     private readonly listMessages: ListMessagesUseCase,
+  private readonly sendMessage: SendMessageUseCase,
   ) {}
 
   @Get()
@@ -49,5 +53,16 @@ export class ConversationsController {
       limit: query.limit,
       offset: query.offset,
     });
+  }
+
+  @Post(':id/messages')
+  @ApiOperation({ summary: 'Send a message to an existing conversation' })
+  @ApiParam({ name: 'id', description: 'Conversation id (uuid)' })
+  @ApiCreatedResponse({ type: SendMessageResponseDto })
+  async send(
+    @Param('id') id: string,
+    @Body() body: SendMessageRequestDto,
+  ): Promise<SendMessageResponseDto> {
+    return this.sendMessage.execute({ conversationId: id, text: body.text });
   }
 }

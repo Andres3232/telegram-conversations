@@ -55,6 +55,7 @@ Responsabilidad: orquestación del negocio mediante casos de uso.
   - `GetMeUseCase`
   - `ListConversationsUseCase`
   - `ListMessagesUseCase`
+  - `SendMessageUseCase`
   - `SyncTelegramUpdatesUseCase`
   - `ReplyToMessageUseCase`
 
@@ -135,6 +136,17 @@ Esto permite:
 En dominio, la relación se representa mediante:
 - `Message.conversationId`
 
+### Mensajes salientes (OUT)
+
+Además de persistir mensajes entrantes (`IN`) desde Telegram, la API permite enviar mensajes manualmente a una conversación existente.
+
+- Endpoint REST: `POST /conversations/:id/messages`
+- Caso de uso: `SendMessageUseCase`
+  - valida que la conversación exista
+  - valida que el texto no esté vacío
+  - envía el mensaje a Telegram (`TelegramClient.sendMessage`)
+  - persiste un `Message` con `direction = OUT`
+
 ### Idempotencia para mensajes entrantes de Telegram
 
 Para soportar reintentos y evitar duplicados (por crash/restart del poller), la persistencia de mensajes implementa idempotencia:
@@ -142,6 +154,8 @@ Para soportar reintentos y evitar duplicados (por crash/restart del poller), la 
 - `Message` incluye opcionalmente `telegramUpdateId`.
 - `MessagePersistence.telegramUpdateId` tiene un **constraint UNIQUE**.
 - El adapter `TypeOrmMessageRepository.saveFromTelegramUpdate(...)` intenta insertar y, si falla por unique violation, retorna `undefined`.
+
+Nota: `telegramUpdateId` aplica solo a mensajes entrantes (`IN`). Para mensajes salientes (`OUT`) el campo queda vacío y se persiste como `NULL`.
 
 Esto permite reprocesar updates sin duplicar mensajes.
 
@@ -211,6 +225,10 @@ Variables relevantes:
   - `message`
   - `data`
 
+Ejemplos:
+- `ConversationNotFoundError` → `CONVERSATION_NOT_FOUND`
+- `ConversationMessageTextRequiredError` → `CONVERSATION_MESSAGE_TEXT_REQUIRED`
+
 Esto mantiene:
 - dominio consistente
 - traducción a protocolo HTTP concentrada en infraestructura
@@ -234,31 +252,52 @@ Esto mantiene:
 
 ---
 
-## Próximos pasos (Telegram y background processing)
-
-### Integración Telegram (polling)
-Implementado:
-- Puerto `TelegramClient` (dominio)
-  - `getUpdates(offset, limit, timeoutSeconds)`
-  - `sendMessage(chatId, text)`
-- Puerto `TelegramSyncStateRepository` (dominio)
-  - persistencia del offset / cursor `lastUpdateId`
-- Caso de uso `SyncTelegramUpdatesUseCase` (application)
-  - consume updates
-  - upsert de `Conversation` por `telegramChatId`
-  - insert idempotente de `Message` con `telegramUpdateId`
-  - avanza `lastUpdateId` incrementalmente
-- Driving adapter `TelegramPollingService` (infra)
-  - se habilita con `TELEGRAM_POLLING_ENABLED=true`
-  - interval configurable `TELEGRAM_POLL_INTERVAL_MS`
-
-### Event-driven / Kafka (bonus)
-Una evolución posible:
-- publicar evento `MessageReceivedEvent` al persistir un mensaje entrante
-- handler que genere respuesta automática
-- transporte Kafka como detail de infraestructura
+## Trade-offs intencionales
+Los trade-offs se documentan en `DECISIONS.md`.
 
 ---
 
-## Trade-offs intencionales
-Los trade-offs se documentan en `DECISIONS.md`.
+## Principios SOLID (dónde se aplican)
+
+Esta arquitectura (Hexagonal) facilita aplicar SOLID en la práctica; abajo se listan ejemplos concretos del proyecto.
+
+### S — Single Responsibility (Responsabilidad Única)
+
+- **Dominio**: entidades/VOs modelan reglas (no infraestructura).
+  - Ej.: `Message`, `Conversation`, VOs como `Email`, etc.
+- **Aplicación**: los casos de uso orquestan un flujo de negocio puntual.
+  - Ej.: `SyncTelegramUpdatesUseCase` sincroniza updates y publica evento; `ReplyToMessageUseCase` solo se encarga de responder.
+- **Infraestructura**: cada adapter implementa *un* detalle técnico.
+  - Ej.: `TelegramHttpClient` encapsula HTTP hacia Telegram; `KafkaMessageProducer` encapsula publicación a Kafka; repos TypeORM encapsulan persistencia.
+
+### O — Open/Closed (Abierto/Cerrado)
+
+El core (dominio + aplicación) está **cerrado a cambios** ante variaciones técnicas y **abierto a extensión** agregando nuevos adapters o handlers.
+
+- Para cambiar persistencia, se crea otra implementación de `MessageRepository` / `ConversationRepository` sin tocar los casos de uso.
+- Para sumar un nuevo evento Kafka, se agrega un handler y se registra en el ruteo del consumer sin reescribir el dominio.
+
+### L — Liskov Substitution (Sustitución de Liskov)
+
+Los casos de uso dependen de **contratos (puertos)**. Cualquier implementación que respete el contrato puede sustituirse sin romper el flujo.
+
+- Ej.: `TelegramClient` puede ser `TelegramHttpClient` (real) o un fake/in-memory en tests.
+- Ej.: `LoggerService` puede ser `PinoLoggerService` u otra implementación que mantenga el mismo comportamiento observable (mismos métodos y semántica).
+
+### I — Interface Segregation (Segregación de interfaces)
+
+Los puertos están divididos por propósito para evitar “interfaces gordas” y minimizar dependencias.
+
+- Ej.: repos separados (`UserRepository`, `ConversationRepository`, `MessageRepository`) en vez de un “Repository” único.
+- Ej.: capacidades específicas (`TelegramClient`, `MessageProducer`, `TelegramSyncStateRepository`) en lugar de un adapter “IntegrationsService” monolítico.
+
+### D — Dependency Inversion (Inversión de dependencias)
+
+El core define **abstracciones** (puertos) y la infraestructura aporta **implementaciones**, inyectadas por DI.
+
+- Los casos de uso están en `src/application` y dependen de interfaces de `src/domain/ports`.
+- El wiring en módulos de Nest conecta tokens (por ejemplo `MESSAGE_REPOSITORY`, `TELEGRAM_CLIENT`, etc.) a implementaciones concretas (TypeORM/HTTP/Kafka).
+
+Resultado:
+- dominio y aplicación no “conocen” NestJS/TypeORM/Kafka/Telegram
+- reemplazo de infraestructura sin cambiar lógica de negocio

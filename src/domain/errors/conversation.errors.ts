@@ -5,3 +5,9 @@ export class ConversationNotFoundError extends DomainError {
     super('Conversation not found.', 'CONVERSATION_NOT_FOUND', { conversationId });
   }
 }
+
+export class ConversationMessageTextRequiredError extends DomainError {
+  constructor() {
+    super('Message text is required.', 'CONVERSATION_MESSAGE_TEXT_REQUIRED');
+  }
+}

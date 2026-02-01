@@ -21,9 +21,8 @@ export class MessagePersistence {
   @Column({ type: 'uuid' })
   conversationId: string;
 
-  // Used for idempotency when consuming Telegram updates.
   @Index({ unique: true })
-  @Column({ type: 'bigint', unique: true })
+  @Column({ type: 'bigint', unique: true, nullable: true })
   telegramUpdateId?: string;
 
   @ManyToOne(() => ConversationPersistence, (c) => c.messages, {
@@ -62,7 +61,10 @@ export class MessagePersistence {
     const p = new MessagePersistence();
     p.id = message.id;
     p.conversationId = message.conversationId;
-    p.telegramUpdateId = String(message.telegramUpdateId);
+    p.telegramUpdateId =
+      message.telegramUpdateId === undefined
+        ? undefined
+        : String(message.telegramUpdateId);
     p.direction = message.direction;
     p.content = message.content.toString();
     p.createdAt = message.createdAt;

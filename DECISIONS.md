@@ -5,6 +5,23 @@ Este documento registra trade-offs (decisiones con pros/contras) tomados durante
 ---
 
 
+## 0) `synchronize: true` en TypeORM para velocidad (challenge) vs migraciones
+
+**Decisión:** dejar `synchronize: true` en la configuración de TypeORM durante el desarrollo del challenge.
+
+**Por qué:**
+- Priorizamos **velocidad de iteración**: permite crear/ajustar tablas y columnas automáticamente a partir de las entidades.
+- Reduce fricción al prototipar (evita tener que crear/ejecutar migraciones en cada cambio de schema).
+
+**Consecuencias / costo:**
+- No es recomendable en producción: en cambios complejos puede generar alteraciones no deseadas o pérdida de control del schema.
+- No deja un historial reproductible de cambios de DB (como sí lo hacen las migraciones).
+
+**Lo correcto para un entorno serio:**
+- Usar migraciones (por ejemplo `typeorm migration:generate` / `migration:run`) y setear `synchronize: false`.
+- Mantener el schema versionado y aplicado de forma controlada en CI/CD.
+
+
 
 
 ## 1) Auth con JWT propio (puerto `JwtServicePort`) en vez de `@nestjs/jwt`
@@ -211,3 +228,68 @@ Este documento registra trade-offs (decisiones con pros/contras) tomados durante
 **Consecuencias / costo:**
 - `insert()` no devuelve la entidad completa, por lo que necesitamos un `findOne({ id })` para reconstruir `Message` con valores persistidos (por ejemplo timestamps).
 - Alternativa (si queremos evitar el SELECT): en Postgres se puede usar `INSERT ... RETURNING *` (en TypeORM, vía QueryBuilder), pero se dejó el enfoque actual por simplicidad.
+
+---
+
+## 11) Preparar el core para cambiar de proveedor (Telegram → WhatsApp u otro)
+
+**Escenario futuro:** si en un futuro queremos dejar de usar Telegram y usar WhatsApp (u otro canal) manteniendo el mismo core de conversaciones/mensajes.
+Modelar las integraciones externas como **puertos** (interfaces) y mantener el core (dominio + casos de uso) independiente del proveedor.
+
+**Idealmente no se toca** el dominio si el concepto de negocio sigue siendo “conversaciones” y “mensajes” y el proveedor solo cambia el transporte.
+
+
+### Que cambiar en el codigo para usar WhatsApp
+
+En la arquitectura actual, el cambio se concentra en **infraestructura**.
+
+1) **Adapter de salida (cliente del proveedor)**
+
+- Hoy: el puerto `TelegramClient` (`src/domain/ports/telegram.client.ts`) es consumido por casos de uso como:
+	- `SyncTelegramUpdatesUseCase` (polling de inputs)
+	- `SendMessageUseCase` / `ReplyToMessageUseCase` (outputs)
+- Infra actual: `TelegramHttpClient` (`src/infrastructure/adapters/telegram/telegram-http.client.ts`).
+
+Para WhatsApp, crear otro adapter que implemente el mismo contrato :
+
+- Ej. nuevo: `WhatsAppHttpClient implements TelegramClient` (nombre solo ilustrativo), o mejor aun, un puerto menos generico.
+
+2) **Ingesta de mensajes (polling vs webhooks)**
+
+- Telegram usa polling (`getUpdates`) y por eso existe:
+	- `TelegramPollingService` (infra) que dispara `SyncTelegramUpdatesUseCase`.
+
+WhatsApp segun investigué suele trabajar mejor con **webhooks**. En ese caso, el cambio usual es:
+
+- Reemplazar el mecanismo de entrada:
+	- sacar/deshabilitar `TelegramPollingService`
+	- agregar un controller webhook (adapter de entrada) que reciba eventos del proveedor
+	- ese controller llama a un caso de uso que persista `Conversation/Message` (puede reutilizarse parte del flujo actual o extraerse a un caso de uso menos generico)
+
+
+3) **Eventos y consumer (Kafka)**
+
+- La parte event-driven puede quedar igual:
+	- el caso de uso que persiste mensajes sigue publicando `MessageReceivedEvent`.
+	- el consumer sigue reaccionando igual.
+- Lo que único que cambia es el adapter que envia replies (el cliente del proveedor).
+
+### Por que esto es mas eficiente” con Hexagonal
+
+- Los casos de uso dependen de **puertos** (interfaces) y no de SDKs.
+- El proveedor es un **detalle** de infraestructura: se encapsula en un adapter.
+- El wiring de Nest permite cambiar implementaciones por configuraci\xf3n/DI.
+
+### Mejora futura recomendada (si de verdad queremos soportar multiples canales)
+
+Hoy el puerto se llama `TelegramClient` y el caso de uso de entrada se llama `SyncTelegramUpdatesUseCase` (muy acoplados semanticamente al proveedor). Para soportar WhatsApp/otros de forma limpia, conviene evolucionar el diseño a un lenguaje mas neutral:
+
+- Renombrar/extraer un puerto generico, por ejemplo:
+	- `MessagingInbox` (recibir mensajes)
+	- `MessagingOutbox` (enviar mensajes)
+	- o un `MessagingProviderClient`
+- Reemplazar `SyncTelegramUpdatesUseCase` por algo como `IngestIncomingMessagesUseCase`.
+- Modelar el `Provider` como string/enum en `Conversation` (ej. `provider = 'telegram' | 'whatsapp'`) **solo si** el negocio lo necesita.
+
+Esto mantiene el dominio y la app hablando en terminos del negocio (mensajes/conversaciones) y deja el provider como un detalle intercambiable.
+
