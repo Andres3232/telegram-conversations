@@ -7,7 +7,15 @@ describe('ReplyToMessageUseCase', () => {
       sendMessage: jest.fn().mockResolvedValue(undefined),
     };
 
-    const uc = new ReplyToMessageUseCase(telegram as any);
+    const config = {
+      get: jest.fn().mockReturnValue('false'),
+    };
+
+    const ai = {
+      generateReply: jest.fn().mockResolvedValue('ai-reply'),
+    };
+
+    const uc = new ReplyToMessageUseCase(telegram as any, config as any, ai as any);
 
     await uc.execute({ chatId: '123', incomingText: 'hola' });
 
