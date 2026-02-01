@@ -7,7 +7,7 @@ Qué hace:
 - Consume mensajes de Telegram por polling vía `getUpdates` (cursor persistido en Postgres).
 - Persiste conversaciones y mensajes.
 - Publica eventos `message.received` en **Kafka** (topic `telegram`).
-- Consume esos eventos y envía un **auto-reply** a Telegram (texto aleatorio).
+- Consume esos eventos y envía un **auto-reply** a Telegram (aleatorio o por IA).
 - Expone una API REST (JWT) para listar conversaciones/mensajes y **enviar un mensaje a una conversación existente**.
 
 ## Requisitos
@@ -69,7 +69,18 @@ Cuando se persiste un mensaje nuevo, la app publica un evento:
 - Topic: `telegram`
 - `eventName`: `message.received`
 
-El consumer de Kafka escucha ese topic y manda una respuesta automática (random) a Telegram.
+El consumer de Kafka escucha ese topic y manda una respuesta automática a Telegram:
+
+- Por defecto: texto aleatorio.
+- Bonus: respuesta dinámica generada por IA (OpenAI).
+
+Para habilitar IA:
+
+- `AI_REPLY_ENABLED=true`
+- `OPENAI_API_KEY=...`
+- `OPENAI_MODEL=gpt-4o-mini` (opcional)
+
+Nota: si la llamada a OpenAI falla, se hace **fallback** a respuesta aleatoria.
 
 ## API REST
 

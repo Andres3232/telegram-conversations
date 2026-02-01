@@ -293,3 +293,89 @@ Hoy el puerto se llama `TelegramClient` y el caso de uso de entrada se llama `Sy
 
 Esto mantiene el dominio y la app hablando en terminos del negocio (mensajes/conversaciones) y deja el provider como un detalle intercambiable.
 
+---
+
+## 12) Bonus: respuesta dinámica generada por IA (OpenAI) + fallback seguro
+
+**Requisito (bonus del challenge):** “Respuesta dinámica generada por IA (en lugar de aleatoria)”.
+
+**Decisión:** implementar un puerto `AIResponder` y una implementación concreta `OpenAiResponder` (infra) usando el SDK oficial de OpenAI, manteniendo:
+
+- **Feature flag** para habilitar/deshabilitar IA en runtime.
+- **Fallback seguro** a respuestas aleatorias si falla la llamada a OpenAI.
+
+### Dónde está implementado
+
+- Puerto (dominio): `src/domain/ports/ai-responder.ts`
+	- `AIResponder.generateReply({ incomingText }) -> Promise<string>`
+- Adapter OpenAI (infra): `src/infrastructure/adapters/ai/openai.responder.ts`
+- Wiring DI (infra): `src/infrastructure/ai/ai.module.ts`
+	- Token `AI_RESPONDER` → `OpenAiResponder`
+- Uso en caso de uso: `src/application/use-cases/telegram/reply-to-message.use-case.ts`
+
+### Configuración (env vars)
+
+- `AI_REPLY_ENABLED=true|false`
+- `OPENAI_API_KEY=...` (requerida si `AI_REPLY_ENABLED=true`)
+- `OPENAI_MODEL=gpt-4o-mini` (opcional)
+
+La validación de env vars se hace en `src/config/configuration.module.ts` con Joi, para fallar rápido si falta algo.
+
+### Por qué hacerlo con puerto (Hexagonal)
+
+- El caso de uso (`ReplyToMessageUseCase`) **no conoce OpenAI**: solo conoce `AIResponder`.
+- Cambiar de proveedor (OpenAI → Azure OpenAI, o incluso “IA mock” para tests) es **cambiar un adapter** y el wiring.
+- Mantiene testeabilidad: en test se puede inyectar un fake de `AIResponder`.
+
+### Consecuencias / costo
+
+- Se introduce dependencia y costo externo (API de OpenAI).
+- Aparecen consideraciones no funcionales: latencia, rate limits, timeouts, y manejo de fallos.
+- Se debe cuidar el prompt para evitar respuestas muy largas o con contenido no deseado.
+
+### Trade-off: fallback aleatorio
+
+**Decisión:** si OpenAI falla (timeout, 401, etc.), responder con texto aleatorio.
+
+**Por qué:**
+- No queremos que el consumer falle y quede reintentando sin fin.
+- Para el challenge, priorizamos continuidad del flujo sobre “respuesta IA garantizada”.
+
+---
+
+## 13) Mejora futura: múltiples proveedores de IA con `AI_PROVIDER=openai|azure`
+
+Hoy el módulo `AiModule` registra una sola implementación (`OpenAiResponder`). Si mañana queremos soportar Azure OpenAI (o cualquier otro), la forma más limpia es mantener el mismo puerto `AIResponder` y elegir implementación por env.
+
+**Idea:**
+
+- Nuevo env var: `AI_PROVIDER=openai|azure` (y posiblemente `azure` como default en ciertos entornos).
+- Agregar un segundo adapter, por ejemplo:
+	- `AzureOpenAiResponder implements AIResponder`
+- Ajustar el wiring para seleccionar el provider en tiempo de arranque.
+
+### Cómo se implementa (en Nest)
+
+En `AiModule`, en lugar de `useExisting`, se puede usar un `useFactory` que lea config y retorne la implementación correcta.
+
+Ejemplo conceptual (no necesariamente copiado tal cual):
+
+- Registrar ambos adapters como providers.
+- Registrar el token `AI_RESPONDER` con `useFactory`:
+	- si `AI_PROVIDER === 'azure'` → `AzureOpenAiResponder`
+	- si no → `OpenAiResponder`
+
+### Nuevas env vars típicas para Azure OpenAI
+
+(Esto depende del SDK/approach, pero normalmente)
+
+- `AZURE_OPENAI_ENDPOINT=...`
+- `AZURE_OPENAI_API_KEY=...`
+- `AZURE_OPENAI_DEPLOYMENT=...` (el “nombre del deployment/model” en Azure)
+
+### Por qué conviene
+
+- Evita acoplar el core a un vendor.
+- Permite cambiar provider sin tocar `ReplyToMessageUseCase`.
+- Facilita mover de OpenAI a Azure por costos, compliance o networking.
+
