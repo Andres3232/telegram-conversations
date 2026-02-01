@@ -341,6 +341,24 @@ La validación de env vars se hace en `src/config/configuration.module.ts` con J
 - No queremos que el consumer falle y quede reintentando sin fin.
 - Para el challenge, priorizamos continuidad del flujo sobre “respuesta IA garantizada”.
 
+### Incidente: error `429 insufficient_quota` (OpenAI) durante pruebas
+
+Durante la validación local, se observó que la integración con OpenAI puede fallar con:
+
+- HTTP **429**
+- `code: "insufficient_quota"`
+- mensaje: “You exceeded your current quota, please check your plan and billing details”
+
+**Interpretación:** la API key / proyecto de OpenAI no tiene crédito disponible o no tiene billing habilitado, por lo que **la inferencia (generación de texto)** queda bloqueada.
+
+**Decisión:** por tiempo/costo del challenge, **no se habilita billing** ni se implementa otro proveedor en este entregable.
+
+**Mitigación actual:** se mantiene el **fallback seguro** a respuestas aleatorias (en `ReplyToMessageUseCase`) para que el sistema siga respondiendo aunque la IA no esté disponible.
+
+**Mejora futura (si se retoma):**
+- agregar soporte de proveedor alternativo (por ejemplo Gemini) detrás del mismo puerto `AIResponder` (`AI_PROVIDER=...`)
+- categorizar y tratar explícitamente 401/429/5xx con métricas y circuit breaker/backoff
+
 ---
 
 ## 13) Mejora futura: múltiples proveedores de IA con `AI_PROVIDER=openai|azure`
