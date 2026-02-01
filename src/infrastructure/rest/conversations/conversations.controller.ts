@@ -1,4 +1,4 @@
-import { Body, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Get, Param, ParseUUIDPipe, Post, Query, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
@@ -45,7 +45,7 @@ export class ConversationsController {
   @ApiParam({ name: 'id', description: 'Conversation id (uuid)' })
   @ApiOkResponse({ type: ListMessagesResponseDto })
   async messages(
-    @Param('id') id: string,
+  @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @Query() query: PaginationQueryDto,
   ): Promise<ListMessagesResponseDto> {
     return this.listMessages.execute({
@@ -60,7 +60,7 @@ export class ConversationsController {
   @ApiParam({ name: 'id', description: 'Conversation id (uuid)' })
   @ApiCreatedResponse({ type: SendMessageResponseDto })
   async send(
-    @Param('id') id: string,
+  @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @Body() body: SendMessageRequestDto,
   ): Promise<SendMessageResponseDto> {
     return this.sendMessage.execute({ conversationId: id, text: body.text });

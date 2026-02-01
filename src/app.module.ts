@@ -9,6 +9,8 @@ import { ConversationsModule } from '@src/infrastructure/rest/conversations/conv
 import { TelegramModule } from '@src/infrastructure/telegram-cron/telegram.module';
 import { KafkaModule } from '@src/infrastructure/kafka/kafka.module';
 import { TelegramConsumersModule } from '@src/infrastructure/kafka/consumers/telegram-consumers.module';
+import { HealthController } from '@src/infrastructure/rest/health.controller';
+import { APP_FILTER } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -24,7 +26,12 @@ import { TelegramConsumersModule } from '@src/infrastructure/kafka/consumers/tel
     ConversationsModule,
     TelegramModule,
   ],
-  controllers: [],
-  providers: [ExceptionFilter],
+  controllers: [HealthController],
+  providers: [
+    {
+      provide: APP_FILTER,
+      useClass: ExceptionFilter,
+    },
+  ],
 })
 export class AppModule {}

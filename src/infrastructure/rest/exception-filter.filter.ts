@@ -7,6 +7,17 @@ import {
 import { DomainError } from '@src/domain/errors/domain.error';
 import { PinoLogger } from 'nestjs-pino';
 
+function isDomainErrorLike(e: unknown): e is DomainError {
+  return (
+    !!e &&
+    typeof e === 'object' &&
+    'errorCode' in e &&
+    typeof (e as any).errorCode === 'string' &&
+    'message' in e &&
+    typeof (e as any).message === 'string'
+  );
+}
+
 @Catch()
 export class ExceptionFilter {
   constructor(private readonly logger: PinoLogger) {}
@@ -21,21 +32,21 @@ export class ExceptionFilter {
     const url = request?.url;
 
     // Dominios -> 400
-    if (exception instanceof DomainError) {
+    if (exception instanceof DomainError || isDomainErrorLike(exception)) {
       this.logger.warn(
         {
-          errorCode: exception.errorCode,
-          data: exception.data,
+          errorCode: (exception as any).errorCode,
+          data: (exception as any).data,
           path: url,
         },
-        exception.message,
+        (exception as any).message,
       );
       return response.status(HttpStatus.BAD_REQUEST).json({
         statusCode: HttpStatus.BAD_REQUEST,
         error: 'domain_error',
-        message: exception.message,
-        code: exception.errorCode,
-        data: exception.data,
+        message: (exception as any).message,
+        code: (exception as any).errorCode,
+        data: (exception as any).data,
         path: url,
         timestamp: new Date().toISOString(),
       });
