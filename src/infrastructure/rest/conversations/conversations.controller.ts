@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import { Get, Param, Query, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOkResponse,
@@ -6,12 +6,10 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-
 import { ListConversationsUseCase } from '@src/application/use-cases/conversations/list-conversations.use-case';
 import { ListMessagesUseCase } from '@src/application/use-cases/conversations/list-messages.use-case';
 import { JwtAuthGuard } from '@src/infrastructure/rest/auth/jwt-auth.guard';
 import { RestController } from '@src/infrastructure/rest/shared/rest.decorator';
-
 import { PaginationQueryDto } from './dto/pagination.dto';
 import { ListConversationsResponseDto } from './dto/conversations.dto';
 import { ListMessagesResponseDto } from './dto/messages.dto';

@@ -1,7 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsString, MinLength } from 'class-validator';
-
-import { RegisterUserInput } from '@src/application/use-cases/auth/register-user.use-case';
 import { LoginInput } from '@src/application/use-cases/auth/login.use-case';
 
 export class RegisterRequestDto {
@@ -13,13 +11,6 @@ export class RegisterRequestDto {
   @IsString()
   @MinLength(8)
   password: string;
-
-  static toDomainInput(dto: RegisterRequestDto): RegisterUserInput {
-    return {
-      email: dto.email,
-      password: dto.password,
-    };
-  }
 }
 
 export class LoginRequestDto {

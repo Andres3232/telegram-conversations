@@ -16,14 +16,14 @@ export function swaggerConfig(app: INestApplication) {
   const config = new DocumentBuilder()
   .setTitle('Telegram Conversations API')
   .setDescription('API documentation')
-    .setVersion(packageJson.version)
+  .setVersion(packageJson.version)
   .addBearerAuth()
   .addTag('Auth')
   .addTag('Conversations')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup('swagger', app, document);
 
   return document;
 }

@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { PinoLogger } from 'nestjs-pino';
-
 import {
   LoggerService,
   LogHttpDebugRequest,

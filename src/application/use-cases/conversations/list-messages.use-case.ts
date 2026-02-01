@@ -1,11 +1,13 @@
 import { Inject, Injectable } from '@nestjs/common';
-
 import { ConversationNotFoundError } from '@src/domain/errors/conversation.errors';
 import {
   CONVERSATION_REPOSITORY,
   ConversationRepository,
 } from '@src/domain/ports/conversation.repository';
-import { MESSAGE_REPOSITORY, MessageRepository } from '@src/domain/ports/message.repository';
+import {
+  MESSAGE_REPOSITORY,
+  MessageRepository,
+} from '@src/domain/ports/message.repository';
 
 export interface ListMessagesInput {
   conversationId: string;
@@ -44,7 +46,11 @@ export class ListMessagesUseCase {
       throw new ConversationNotFoundError(input.conversationId);
     }
 
-    const rows = await this.messages.listByConversationId(conv.id, limit, offset);
+    const rows = await this.messages.listByConversationId(
+      conv.id,
+      limit,
+      offset,
+    );
 
     return {
       items: rows.map((m) => ({

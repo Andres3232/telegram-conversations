@@ -8,7 +8,6 @@ import {
   PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
-
 import { Message } from '@src/domain/model/message.entity';
 import { MessageContent } from '@src/domain/value-objects/message-content.vo';
 import { ConversationPersistence } from '@src/infrastructure/adapters/repositories/conversation/conversation.persistence';
@@ -23,10 +22,9 @@ export class MessagePersistence {
   conversationId: string;
 
   // Used for idempotency when consuming Telegram updates.
-  // If the polling job re-processes an already handled update, the insert will fail due to UNIQUE constraint.
   @Index({ unique: true })
-  @Column({ type: 'bigint', nullable: true, unique: true })
-  telegramUpdateId?: string | null;
+  @Column({ type: 'bigint', unique: true })
+  telegramUpdateId?: string;
 
   @ManyToOne(() => ConversationPersistence, (c) => c.messages, {
     onDelete: 'CASCADE',
@@ -64,10 +62,7 @@ export class MessagePersistence {
     const p = new MessagePersistence();
     p.id = message.id;
     p.conversationId = message.conversationId;
-    p.telegramUpdateId =
-      message.telegramUpdateId !== undefined
-        ? String(message.telegramUpdateId)
-        : null;
+    p.telegramUpdateId = String(message.telegramUpdateId);
     p.direction = message.direction;
     p.content = message.content.toString();
     p.createdAt = message.createdAt;

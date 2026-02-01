@@ -8,7 +8,7 @@ export interface MessageReceivedEventPayload {
   telegramChatId: string;
   telegramUpdateId: number;
   text: string;
-  receivedAt: string; // ISO
+  receivedAt: string;
 }
 
 export class MessageReceivedEvent extends DomainEvent<MessageReceivedEventPayload> {

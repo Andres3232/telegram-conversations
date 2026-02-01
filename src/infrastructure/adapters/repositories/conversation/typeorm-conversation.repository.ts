@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-
 import { Conversation } from '@src/domain/model/conversation.entity';
 import { ConversationRepository } from '@src/domain/ports/conversation.repository';
 import { TelegramChatId } from '@src/domain/value-objects/telegram-chat-id.vo';

@@ -196,3 +196,18 @@ Este documento registra trade-offs (decisiones con pros/contras) tomados durante
 - **Contra (separado):** más boilerplate.
 - **Pro (todo en KafkaModule):** menos boilerplate inicial.
 - **Contra (todo en KafkaModule):** riesgo de mezclar infraestructura con features y que el módulo de Kafka termine dependiendo de Telegram/casos de uso.
+
+---
+
+## 10) Insert idempotente en `saveFromTelegramUpdate`: `insert()` + `23505` en vez de `save()`
+
+**Decisión:** en `TypeOrmMessageRepository.saveFromTelegramUpdate(...)` usar `repo.insert(...)` y capturar el error de Postgres `23505` (unique violation sobre `telegramUpdateId`) para tratar duplicados como `undefined` (no-op), en vez de usar `repo.save(...)`.
+
+**Por qué:**
+- La intención es **insert-only**: cuando llega un update de Telegram queremos intentar insertar un nuevo mensaje y, si ya lo procesamos antes, no hacer nada. `insert()` expresa esa intención de forma explícita.
+- `save()` es más “mágico”: puede derivar en INSERT o UPDATE según el estado/PK y puede ejecutar lógica extra (cascades/subscribers). Para este caso técnico de idempotencia, preferimos una operación simple, directa y fácil de razonar.
+- El control del error `23505` (constraint UNIQUE) es una forma clara de implementar **idempotencia** ante reintentos/rebalances.
+
+**Consecuencias / costo:**
+- `insert()` no devuelve la entidad completa, por lo que necesitamos un `findOne({ id })` para reconstruir `Message` con valores persistidos (por ejemplo timestamps).
+- Alternativa (si queremos evitar el SELECT): en Postgres se puede usar `INSERT ... RETURNING *` (en TypeORM, vía QueryBuilder), pero se dejó el enfoque actual por simplicidad.

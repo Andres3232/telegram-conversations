@@ -7,7 +7,6 @@ import {
   PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
-
 import { Conversation } from '@src/domain/model/conversation.entity';
 import { TelegramChatId } from '@src/domain/value-objects/telegram-chat-id.vo';
 import { MessagePersistence } from '@src/infrastructure/adapters/repositories/message/message.persistence';

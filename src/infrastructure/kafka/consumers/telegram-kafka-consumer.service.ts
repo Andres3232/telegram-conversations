@@ -5,7 +5,6 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { Consumer } from 'kafkajs';
-
 import {
   CONFIGURATION_SERVICE,
   ConfigurationService,
@@ -35,7 +34,7 @@ export class TelegramKafkaConsumerService
     @Inject(LOGGER_SERVICE)
     private readonly logger: LoggerService,
     private readonly messageReceivedHandler: MessageReceivedHandler,
-  private readonly kafkaFactory: KafkaClientFactory,
+    private readonly kafkaFactory: KafkaClientFactory,
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -57,8 +56,9 @@ export class TelegramKafkaConsumerService
       this.config.get(ConfigKeys.KAFKA_CONSUMER_GROUP_ID) ??
       'telegram-conversations';
 
-  // Centralized kafka client config (clientId, brokers) via factory
-  this.consumer = this.kafkaFactory.createClient('consumer').consumer({ groupId });
+    this.consumer = this.kafkaFactory
+      .createClient('consumer')
+      .consumer({ groupId });
 
     await this.consumer.connect();
     await this.consumer.subscribe({

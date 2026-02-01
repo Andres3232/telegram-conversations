@@ -16,7 +16,6 @@ import { TelegramPollingService } from './telegram-polling.service';
 import { KafkaModule } from '@src/infrastructure/kafka/kafka.module';
 import { TelegramSyncStatePersistence } from '@src/infrastructure/adapters/repositories/telegram-sync-state/telegram-sync-state.persistence';
 import { TypeOrmTelegramSyncStateRepository } from '@src/infrastructure/adapters/repositories/telegram-sync-state/typeorm-telegram-sync-state.repository';
-
 import { ConversationPersistence } from '@src/infrastructure/adapters/repositories/conversation/conversation.persistence';
 import { MessagePersistence } from '@src/infrastructure/adapters/repositories/message/message.persistence';
 import { TypeOrmConversationRepository } from '@src/infrastructure/adapters/repositories/conversation/typeorm-conversation.repository';
@@ -37,7 +36,6 @@ import { TypeOrmMessageRepository } from '@src/infrastructure/adapters/repositor
   providers: [
     SyncTelegramUpdatesUseCase,
     TelegramPollingService,
-
     TelegramHttpClient,
     TypeOrmTelegramSyncStateRepository,
     TypeOrmConversationRepository,
@@ -45,7 +43,6 @@ import { TypeOrmMessageRepository } from '@src/infrastructure/adapters/repositor
     NestConfigurationService,
     { provide: TELEGRAM_CLIENT, useClass: TelegramHttpClient },
     { provide: CONFIGURATION_SERVICE, useExisting: NestConfigurationService },
-  // Logger is provided by LoggingModule
     {
       provide: TELEGRAM_SYNC_STATE_REPOSITORY,
       useClass: TypeOrmTelegramSyncStateRepository,

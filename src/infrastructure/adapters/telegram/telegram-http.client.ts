@@ -1,5 +1,4 @@
 import { Inject, Injectable } from '@nestjs/common';
-
 import {
   TelegramClient,
   TelegramGetUpdatesParams,
@@ -25,20 +24,26 @@ export class TelegramHttpClient implements TelegramClient {
   ) {}
 
   private get baseUrl(): string {
-  const token = this.config.get(ConfigKeys.TELEGRAM_BOT_TOKEN);
+    const token = this.config.get(ConfigKeys.TELEGRAM_BOT_TOKEN);
     return `https://api.telegram.org/bot${token}`;
   }
 
-  async getUpdates(params: TelegramGetUpdatesParams): Promise<TelegramUpdate[]> {
+  async getUpdates(
+    params: TelegramGetUpdatesParams,
+  ): Promise<TelegramUpdate[]> {
     const url = new URL(`${this.baseUrl}/getUpdates`);
-    if (params.offset !== undefined) url.searchParams.set('offset', String(params.offset));
-    if (params.limit !== undefined) url.searchParams.set('limit', String(params.limit));
+    if (params.offset !== undefined)
+      url.searchParams.set('offset', String(params.offset));
+    if (params.limit !== undefined)
+      url.searchParams.set('limit', String(params.limit));
     if (params.timeoutSeconds !== undefined)
       url.searchParams.set('timeout', String(params.timeoutSeconds));
 
     const res = await fetch(url.toString(), { method: 'GET' });
     if (!res.ok) {
-      throw new Error(`Telegram getUpdates failed: ${res.status} ${res.statusText}`);
+      throw new Error(
+        `Telegram getUpdates failed: ${res.status} ${res.statusText}`,
+      );
     }
 
     const payload = (await res.json()) as TelegramApiResponse<any[]>;
@@ -69,7 +74,9 @@ export class TelegramHttpClient implements TelegramClient {
     });
 
     if (!res.ok) {
-      throw new Error(`Telegram sendMessage failed: ${res.status} ${res.statusText}`);
+      throw new Error(
+        `Telegram sendMessage failed: ${res.status} ${res.statusText}`,
+      );
     }
 
     const payload = (await res.json()) as TelegramApiResponse<unknown>;

@@ -1,8 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ConfigurationService } from '@src/domain/ports/configuration.service';
-
-
 @Injectable()
 export class NestConfigurationService implements ConfigurationService {
   constructor(

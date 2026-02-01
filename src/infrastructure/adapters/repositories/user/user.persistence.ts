@@ -6,7 +6,6 @@ import {
   UpdateDateColumn,
   Index,
 } from 'typeorm';
-
 import { User } from '@src/domain/model/user.entity';
 import { Email } from '@src/domain/value-objects/email.vo';
 

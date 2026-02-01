@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Kafka } from 'kafkajs';
-
 import {
   CONFIGURATION_SERVICE,
   ConfigurationService,

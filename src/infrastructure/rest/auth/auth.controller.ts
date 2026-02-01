@@ -1,12 +1,26 @@
-import { Body, Get, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-
+import {
+  Body,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { RegisterUserUseCase } from '@src/application/use-cases/auth/register-user.use-case';
 import { LoginUseCase } from '@src/application/use-cases/auth/login.use-case';
 import { GetMeUseCase } from '@src/application/use-cases/auth/get-me.use-case';
-
 import { RestController } from '@src/infrastructure/rest/shared/rest.decorator';
-import { LoginRequestDto, LoginResponseDto, RegisterRequestDto } from './dto/auth.dto';
+import {
+  LoginRequestDto,
+  LoginResponseDto,
+  RegisterRequestDto,
+} from './dto/auth.dto';
 import { AuthenticatedRequest, JwtAuthGuard } from './jwt-auth.guard';
 import { Req } from '@nestjs/common';
 
@@ -28,22 +42,26 @@ export class AuthController {
     },
   })
   async register(@Body() body: RegisterRequestDto) {
-  return this.registerUser.execute(RegisterRequestDto.toDomainInput(body));
+    return this.registerUser.execute(body);
   }
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login and get JWT' })
   @ApiOkResponse({ type: LoginResponseDto })
-  async loginEndpoint(@Body() body: LoginRequestDto): Promise<LoginResponseDto> {
-  return this.login.execute(LoginRequestDto.toDomainInput(body));
+  async loginEndpoint(
+    @Body() body: LoginRequestDto,
+  ): Promise<LoginResponseDto> {
+    return this.login.execute(LoginRequestDto.toDomainInput(body));
   }
 
   @Get('me')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get current user' })
-  @ApiOkResponse({ schema: { example: { id: 'uuid', email: 'admin@example.com' } } })
+  @ApiOkResponse({
+    schema: { example: { id: 'uuid', email: 'admin@example.com' } },
+  })
   async getMe(@Req() req: AuthenticatedRequest) {
     return this.me.execute({ userId: req.user!.id });
   }

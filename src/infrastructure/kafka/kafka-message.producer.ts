@@ -13,7 +13,7 @@ export class KafkaMessageProducer implements MessageProducer {
 
   private async getProducer(): Promise<Producer> {
     if (!this.producer) {
-  this.producer = this.kafkaFactory.createClient('producer').producer();
+      this.producer = this.kafkaFactory.createClient('producer').producer();
       await this.producer.connect();
     }
     return this.producer;

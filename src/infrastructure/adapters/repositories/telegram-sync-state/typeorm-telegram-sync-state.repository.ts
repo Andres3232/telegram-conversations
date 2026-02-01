@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-
 import {
   TelegramSyncState,
   TelegramSyncStateRepository,
@@ -11,9 +10,7 @@ import { TelegramSyncStatePersistence } from './telegram-sync-state.persistence'
 const SINGLETON_ID = 'bot';
 
 @Injectable()
-export class TypeOrmTelegramSyncStateRepository
-  implements TelegramSyncStateRepository
-{
+export class TypeOrmTelegramSyncStateRepository implements TelegramSyncStateRepository {
   constructor(
     @InjectRepository(TelegramSyncStatePersistence)
     private readonly repo: Repository<TelegramSyncStatePersistence>,

@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-
 import { MESSAGE_PRODUCER } from '@src/domain/ports/message.producer';
 import {
   CONFIGURATION_SERVICE,

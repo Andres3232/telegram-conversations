@@ -10,7 +10,6 @@ export class ConfigurationModule {
   private static readonly DEFAULT_ENV_FILE = '/.env';
   static forRoot(envFile?: string): DynamicModule {
     let envFilePath = envFile ?? ConfigurationModule.DEFAULT_ENV_FILE;
-    // Si el path es absoluto, úsalo tal cual; si es relativo, concatena cwd
     if (!envFilePath.startsWith('/')) {
       envFilePath = process.cwd() + '/' + envFilePath;
     }
@@ -27,7 +26,6 @@ export class ConfigurationModule {
               .valid('local', 'dev', 'test', 'tst', 'stg', 'prd')
               .required(),
             [ConfigKeys.PORT]: Joi.number().required(),
-            [ConfigKeys.CATALOG_INFO_PATH]: Joi.string().required(),
           }),
           isGlobal: true,
         }),

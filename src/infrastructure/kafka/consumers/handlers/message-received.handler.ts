@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-
 import { ReplyToMessageUseCase } from '@src/application/use-cases/telegram/reply-to-message.use-case';
 
 export interface MessageReceivedEventEnvelope {
