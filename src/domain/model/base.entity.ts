@@ -1,7 +1,7 @@
 import { InvalidUUIDError } from "../errors/common.error";
 
 export type EntityProps<T> = {
-  [K in keyof T as T[K] extends Function ? never : K]: T[K];
+  [K in keyof T as T[K] extends (...args: any[]) => any ? never : K]: T[K];
 };
 export abstract class BaseEntity {
   readonly id: string;

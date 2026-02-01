@@ -3,8 +3,6 @@ import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
 import { ConfigKeys } from '@src/config/config-keys';
 
-const DEFAULT_SERVICE_NAME = 'user-core';
-
 @Module({})
 export class ConfigurationModule {
   private static readonly DEFAULT_ENV_FILE = '/.env';
@@ -26,6 +24,26 @@ export class ConfigurationModule {
               .valid('local', 'dev', 'test', 'tst', 'stg', 'prd')
               .required(),
             [ConfigKeys.PORT]: Joi.number().required(),
+
+            // Telegram
+            [ConfigKeys.TELEGRAM_BOT_TOKEN]: Joi.string().required(),
+            [ConfigKeys.TELEGRAM_POLLING_ENABLED]: Joi.boolean()
+              .truthy('true')
+              .falsy('false')
+              .default(false),
+            [ConfigKeys.TELEGRAM_POLL_INTERVAL_MS]: Joi.number().default(2000),
+            [ConfigKeys.TELEGRAM_GETUPDATES_LIMIT]: Joi.number().default(100),
+            [ConfigKeys.TELEGRAM_GETUPDATES_TIMEOUT_SECONDS]:
+              Joi.number().default(0),
+
+            // Kafka
+            [ConfigKeys.KAFKA_BROKERS]: Joi.string().default('localhost:9094'),
+            [ConfigKeys.KAFKA_CONSUMER_GROUP_ID]:
+              Joi.string().default('telegram-consumer'),
+            [ConfigKeys.KAFKA_CONSUMER_ENABLED]: Joi.boolean()
+              .truthy('true')
+              .falsy('false')
+              .default(false),
           }),
           isGlobal: true,
         }),

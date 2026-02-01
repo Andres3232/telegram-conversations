@@ -60,7 +60,7 @@ Responsabilidad: orquestación del negocio mediante casos de uso.
   - `ReplyToMessageUseCase`
 
 Características:
-- Los casos de uso dependen de **puertos** (interfaces del dominio) inyectados por tokens.
+- Los casos de uso dependen de **puertos**
 - No conocen TypeORM, controllers, ni Telegram.
 
 ---
@@ -102,7 +102,7 @@ Responsabilidad: implementar detalles concretos y adaptadores.
 
 ## Wiring (Dependency Injection)
 
-Se utiliza el contenedor de DI de NestJS, pero se **inyectan interfaces del dominio** usando tokens (`USER_REPOSITORY`, etc.).
+Se utiliza el contenedor de DI de NestJS, pero se **inyectan interfaces del dominio** (`USER_REPOSITORY`, etc.).
 
 Ejemplos:
 - `UserRepository` (puerto) → `TypeOrmUserRepository` (adapter)

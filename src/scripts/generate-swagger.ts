@@ -71,7 +71,7 @@ async function generateSwagger() {
 
   const swaggerJsonPath = join(outputPath, 'swagger.json');
   Object.values(document.paths).forEach(path => {
-    // @ts-ignore
+  // @ts-expect-error - agregamos options para CORS en swagger.json
     path.options = optionsCors;
 
   });
