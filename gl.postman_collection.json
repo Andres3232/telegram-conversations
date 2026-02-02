@@ -1,0 +1,275 @@
+{
+  "info": {
+    "_postman_id": "4425daaa-8b46-4f14-acfc-419513c77fa9",
+    "name": "gl",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "25439135"
+  },
+  "item": [
+    {
+      "name": "register",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"test2@example.com\",\n  \"password\": \"Str0ngPass!123\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3000/auth/register",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "auth",
+            "register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "login",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"test2@example.com\",\n  \"password\": \"Str0ngPass!123\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3000/auth/login",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "test jwt",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhMjhhYTIxZi1jNTc4LTRkYTYtYTg2ZS02MGU5ZGJhYTVjMWUiLCJlbWFpbCI6InRlc3QyQGV4YW1wbGUuY29tIiwiaWF0IjoxNzY5ODA0NTM0LCJleHAiOjE3Njk4MDgxMzR9.cNyrIMdiTB8BlXDkW0BhLjRM9W2jwEzQNZePiJVCY6U",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"test2@example.com\",\n  \"password\": \"Str0ngPass!123\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3000/auth/me",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "auth",
+            "me"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "list conversations",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4MjE4MjJiNS1mZGUyLTQ1YzktYWM5MC00YmI2YTAxY2JkYzUiLCJlbWFpbCI6InRlc3QyQGV4YW1wbGUuY29tIiwiaWF0IjoxNzY5OTg0Mzg3LCJleHAiOjE3Njk5ODc5ODd9.1uaWewlKs3tTSozwcOFegFZMAjiN9dMAPMGMLUWjOho",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3000/conversations?limit=1&offset=1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "conversations"
+          ],
+          "query": [
+            {
+              "key": "limit",
+              "value": "1",
+              "type": "text"
+            },
+            {
+              "key": "offset",
+              "value": "1",
+              "type": "text"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "messages of the conversations",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4MjE4MjJiNS1mZGUyLTQ1YzktYWM5MC00YmI2YTAxY2JkYzUiLCJlbWFpbCI6InRlc3QyQGV4YW1wbGUuY29tIiwiaWF0IjoxNzY5OTg0Mzg3LCJleHAiOjE3Njk5ODc5ODd9.1uaWewlKs3tTSozwcOFegFZMAjiN9dMAPMGMLUWjOho",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"test2@example.com\",\n  \"password\": \"Str0ngPass!123\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3000/conversations/:id/messages?limit=4&offset=2",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "conversations",
+            ":id",
+            "messages"
+          ],
+          "query": [
+            {
+              "key": "limit",
+              "value": "4"
+            },
+            {
+              "key": "offset",
+              "value": "2",
+              "type": "text"
+            }
+          ],
+          "variable": [
+            {
+              "key": "id",
+              "value": "d8c8f850-3d76-492f-9763-4f406696398a"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "reply",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4MjE4MjJiNS1mZGUyLTQ1YzktYWM5MC00YmI2YTAxY2JkYzUiLCJlbWFpbCI6InRlc3QyQGV4YW1wbGUuY29tIiwiaWF0IjoxNzY5OTg0MTExLCJleHAiOjE3Njk5ODc3MTF9.sfbE0r3duq8_EX2lygrILvyugv-D8RIqYwmUIaw1XT4",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"text\": \"que haces\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3000/conversations/:id/messages",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "conversations",
+            ":id",
+            "messages"
+          ],
+          "variable": [
+            {
+              "key": "id",
+              "value": "d8c8f850-3d76-492f-9763-4f406696398a"
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

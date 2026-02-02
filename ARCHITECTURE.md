@@ -245,7 +245,7 @@ Esto mantiene:
 
 ## API docs (Swagger)
 
-- Swagger está habilitado en `/api`.
+- Swagger está habilitado en `/swagger`.
 - Tags principales:
   - `Auth`
   - `Conversations`
