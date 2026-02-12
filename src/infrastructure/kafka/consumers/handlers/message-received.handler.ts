@@ -18,7 +18,6 @@ export class MessageReceivedHandler {
   constructor(private readonly replyToMessageUseCase: ReplyToMessageUseCase) {}
 
   async handle(envelope: MessageReceivedEventEnvelope): Promise<void> {
-    // Minimal validation to avoid crashing on malformed messages
     if (!envelope?.payload?.telegramChatId) return;
 
     await this.replyToMessageUseCase.execute({

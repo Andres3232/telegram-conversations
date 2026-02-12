@@ -36,7 +36,7 @@ export class RegisterUserUseCase {
   ) {}
 
   async execute(input: RegisterUserInput): Promise<RegisterUserOutput> {
-    const email = Email.create(input.email);
+    const email = Email.create(input.email); //puedo acceder al create porque es un metodo static nohace falta hacer un new
     const password = Password.create(input.password);
 
     this.logger.info('Register user requested', { email: email.toString() });

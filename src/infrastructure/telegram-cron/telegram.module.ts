@@ -24,7 +24,7 @@ import { TypeOrmMessageRepository } from '@src/infrastructure/adapters/repositor
 @Module({
   imports: [
     ConfigModule,
-  LoggingModule.forRoot(),
+    LoggingModule.forRoot(),
     ScheduleModule.forRoot(),
     KafkaModule,
     TypeOrmModule.forFeature([

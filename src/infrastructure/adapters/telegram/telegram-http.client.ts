@@ -16,6 +16,20 @@ interface TelegramApiResponse<T> {
   description?: string;
 }
 
+type TelegramGetUpdatesDto = {
+  update_id: number;
+  message?: {
+    message_id: number;
+    chat?: { id?: number | string };
+    text?: string;
+    date: number;
+  };
+};
+
+function toOptionalString(v: unknown): string | undefined {
+  return typeof v === 'string' ? v : undefined;
+}
+
 @Injectable()
 export class TelegramHttpClient implements TelegramClient {
   constructor(
@@ -46,24 +60,40 @@ export class TelegramHttpClient implements TelegramClient {
       );
     }
 
-    const payload = (await res.json()) as TelegramApiResponse<any[]>;
+    const payload = (await res.json()) as TelegramApiResponse<unknown>;
     if (!payload.ok) {
       throw new Error(
         `Telegram getUpdates error: ${payload.description ?? 'unknown error'}`,
       );
     }
 
-    return (payload.result ?? []).map((u) => ({
+  const resultRaw = payload.result;
+  const result: TelegramGetUpdatesDto[] = Array.isArray(resultRaw)
+    ? (resultRaw as TelegramGetUpdatesDto[])
+    : [];
+
+  return result.map((u) => {
+    const message = u.message;
+    const chatIdRaw = message?.chat?.id;
+    const chatId =
+      chatIdRaw === undefined
+        ? undefined
+        : typeof chatIdRaw === 'number' || typeof chatIdRaw === 'string'
+          ? String(chatIdRaw)
+          : undefined;
+
+    return {
       updateId: u.update_id,
-      message: u.message
+      message: message && chatId
         ? {
-            messageId: u.message.message_id,
-            chatId: String(u.message.chat?.id),
-            text: u.message.text,
-            date: u.message.date,
-          }
+          messageId: message.message_id,
+          chatId,
+          text: toOptionalString(message.text),
+          date: message.date,
+        }
         : undefined,
-    }));
+    };
+  });
   }
 
   async sendMessage(params: { chatId: string; text: string }): Promise<void> {

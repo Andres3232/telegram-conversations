@@ -88,7 +88,6 @@ export class TelegramKafkaConsumerService
           return;
         }
 
-        // Unknown eventName: ignore (forward compatibility)
         this.logger.debug('kafka.consumer.unknown_event', {
           eventName: envelope.eventName,
           topic,

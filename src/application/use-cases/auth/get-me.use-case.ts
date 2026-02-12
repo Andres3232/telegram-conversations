@@ -20,7 +20,7 @@ export class GetMeUseCase {
   async execute(input: GetMeInput): Promise<GetMeOutput> {
     const user = await this.userRepo.findById(input.userId);
     if (!user) {
-      throw new Error('User not found');
+      throw new Error('User not found'); //TODO: cambiar por error de dominio
     }
 
     return {

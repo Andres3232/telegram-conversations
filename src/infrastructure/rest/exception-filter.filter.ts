@@ -7,17 +7,6 @@ import {
 import { DomainError } from '@src/domain/errors/domain.error';
 import { PinoLogger } from 'nestjs-pino';
 
-function isDomainErrorLike(e: unknown): e is DomainError {
-  return (
-    !!e &&
-    typeof e === 'object' &&
-    'errorCode' in e &&
-    typeof (e as any).errorCode === 'string' &&
-    'message' in e &&
-    typeof (e as any).message === 'string'
-  );
-}
-
 @Catch()
 export class ExceptionFilter {
   constructor(private readonly logger: PinoLogger) {}
@@ -32,7 +21,7 @@ export class ExceptionFilter {
     const url = request?.url;
 
     // Dominios -> 400
-    if (exception instanceof DomainError || isDomainErrorLike(exception)) {
+    if (exception instanceof DomainError ) {
       this.logger.warn(
         {
           errorCode: (exception as any).errorCode,

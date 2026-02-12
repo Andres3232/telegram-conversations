@@ -32,10 +32,13 @@ export class TelegramPollingService {
       return;
     }
 
+    // evito q se ejecute peticiones en paralelo (overlap)
     if (this.isRunning) {
       return;
     }
 
+    // hago esto para tener mas control en el tiempo de polling, osea la variable TELEGRAM_POLL_INTERVAL_MS la puedo guardar en un secret manager/vault
+    //  y cambiar sin necesidad de tocar codigo, (por eso dejo 500 en el decorador y no directamente 2000)
     const intervalMs = Math.max(
       250,
       this.config.getNumber(ConfigKeys.TELEGRAM_POLL_INTERVAL_MS) ?? 2000,

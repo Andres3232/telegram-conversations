@@ -37,6 +37,7 @@ export interface SyncTelegramUpdatesOutput {
 }
 
 @Injectable()
+//TODO: cambiar el nombre del caso de uso a algo mas generico por ejemplo IngestIncomingMessagesUseCase
 export class SyncTelegramUpdatesUseCase {
   constructor(
     @Inject(TELEGRAM_CLIENT) private readonly telegramClient: TelegramClient,

@@ -25,7 +25,15 @@ export interface LoginOutput {
   accessToken: string;
 }
 
-@Injectable()
+// si es muy "purista" estoy importando cosas de infraestructura en applicactio, esto rompe el principio de comunicacion de arq hex.
+//me ahorro por ejemplo de hacer
+// {
+//   provide: LoginUseCase,
+//   useFactory: (userRepo, hasher, jwt, logger) =>
+//     new LoginUseCase(userRepo, hasher, jwt, logger),
+//   inject: [USER_REPOSITORY, PASSWORD_HASHER, JWT_SERVICE, LOGGER_SERVICE],
+// } en el modulo de auth, osea con ese decorador puedo registrarlos casos de usos en providers
+@Injectable() 
 export class LoginUseCase {
   constructor(
     @Inject(USER_REPOSITORY) private readonly userRepo: UserRepository,

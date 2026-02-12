@@ -86,7 +86,7 @@ Este documento registra trade-offs (decisiones con pros/contras) tomados durante
 
 ---
 
-## 5) Offset persistido + idempotencia “pro” por UNIQUE (`telegramUpdateId`)
+## 5) Offset persistido + idempotencia por UNIQUE (`telegramUpdateId`)
 
 **Decisión:** persistir el cursor (`lastUpdateId`) en DB y usar `telegramUpdateId` con constraint **UNIQUE** para que el consumo sea idempotente ante reintentos.
 

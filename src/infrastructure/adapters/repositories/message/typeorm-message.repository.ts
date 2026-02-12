@@ -32,7 +32,7 @@ export class TypeOrmMessageRepository implements MessageRepository {
     });
 
     try {
-  await this.repo.insert(MessagePersistence.fromDomain(message));
+      await this.repo.insert(MessagePersistence.fromDomain(message));
       const row = await this.repo.findOne({ where: { id: message.id } });
       return row?.toDomain();
     } catch (err: any) {
